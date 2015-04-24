@@ -1,0 +1,6 @@
+By	fileN3.txt:1;
+Hello	fileN3.txt:1;
+MapReduce	fileN3.txt:2;fileN2.txt:1;fileN1.txt:1;
+is	fileN1.txt:1;fileN2.txt:2;
+powerful	fileN2.txt:1;
+simple	fileN2.txt:1;fileN1.txt:1;
