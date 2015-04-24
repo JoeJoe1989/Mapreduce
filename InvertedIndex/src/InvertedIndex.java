@@ -47,8 +47,21 @@ public class InvertedIndex {
 				position++;
 			}
 
+		}	
+	}
+	
+	private boolean isAllCapital(String s) {
+		for (int i = 0; i < s.length(); i++) {
+			if (! Character.isUpperCase(s.charAt(i))) return false;
 		}
-
+		return true;
+	}
+	
+	private boolean isAllLetter(String s) {
+		for (int i = 0; i < s.length(); i++) {
+			if (! Character.isLetter(s.charAt(i))) return false;
+		}
+		return true;
 	}
 
 	public static class Reduce extends Reducer<Text, Text, Text, Text> {
