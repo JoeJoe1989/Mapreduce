@@ -4,6 +4,7 @@ import java.util.StringTokenizer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -12,11 +13,13 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 public class InvertedIndex {
+	
 	public static class Map extends
 			Mapper<NullWritable, BytesWritable, Text, Text> {
 
@@ -65,6 +68,7 @@ public class InvertedIndex {
 	}
 
 	public static class Reduce extends Reducer<Text, Text, Text, Text> {
+		private MultipleOutputs<Text, Text> mos;
 		private Text keyInfo = new Text();
 		private Text valueInfo = new Text();
 
@@ -78,7 +82,22 @@ public class InvertedIndex {
 			}
 			valueInfo.set(result);
 			context.write(key, valueInfo);
+			
+			if (key.getLength() < 3) mos.write("test1", key, valueInfo);
+			else mos.write("test2", key, valueInfo);
 		}
+		
+		@Override
+        protected void setup(Context context) throws IOException,
+        InterruptedException {
+            mos = new MultipleOutputs<Text, Text>(context);
+            super.setup(context);
+        }
+        @Override
+        protected void cleanup(Context context) throws IOException,InterruptedException{
+            mos.close();
+            super.cleanup(context);
+        }
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -102,6 +121,9 @@ public class InvertedIndex {
 
 		FileInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+		
+		MultipleOutputs.addNamedOutput(job, "test1", TextOutputFormat.class, Text.class, Text.class);
+	    MultipleOutputs.addNamedOutput(job, "test2", TextOutputFormat.class, Text.class, Text.class);
 
 		boolean ret = job.waitForCompletion(true);
 		if (!ret) {
