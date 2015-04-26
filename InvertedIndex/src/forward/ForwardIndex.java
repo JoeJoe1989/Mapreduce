@@ -49,7 +49,7 @@ public class ForwardIndex {
 			String html = new String(fileContentByte);
 			Document doc = Jsoup.parse(html, url);
 
-			int position = 0;
+			int position = 1;
 
 			Elements metaData = doc.select("meta[name]");
 			if (metaData != null) {
