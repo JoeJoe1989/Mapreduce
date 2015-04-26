@@ -99,7 +99,7 @@ public class InvertedIndex {
 				for (Element link : links) {
 					String anchor = link.text().trim();
 					StringTokenizer anchorTokens = new StringTokenizer(anchor);
-					String outLink = link.attr("abs:href").toString();
+					String outLink = link.attr("abs:href");
 
 					// for page rank
 					keyInfo.set("Link\t" + outLink);
