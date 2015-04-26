@@ -64,7 +64,7 @@ public class InvertedIndex {
 				StringTokenizer metaTokens = new StringTokenizer(metaContent);
 				while (metaTokens.hasMoreTokens()) {
 					String word = metaTokens.nextToken();
-					helper(url, wordOccurence, word, 2, 3, position);
+					helper(url, wordOccurence, word, 2, 5, position);
 					position++;
 				}
 			}
@@ -220,7 +220,7 @@ public class InvertedIndex {
 			word = Stemmer.getString(word.toLowerCase().toString());
 		}
 
-		if (wordOccurence.containsKey(word)) {
+		if (!wordOccurence.containsKey(word)) {
 			ArrayList<Occurence> tempList = new ArrayList<Occurence>();
 			tempList.add(new Occurence(url, isCapital, type, importance,
 					position));
