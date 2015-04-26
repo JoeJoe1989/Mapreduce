@@ -11,7 +11,6 @@ import java.util.StringTokenizer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -35,7 +34,6 @@ public class InvertedIndex {
 
 	public static class Map extends
 			Mapper<NullWritable, BytesWritable, Text, Text> {
-
 		public void map(NullWritable key, BytesWritable value, Context context)
 				throws IOException, InterruptedException {
 
@@ -117,21 +115,41 @@ public class InvertedIndex {
 				}
 			}
 
+			HashMap<String, CombinedOccurence> combinedHM = new HashMap<String, CombinedOccurence>();
 			for (String word : wordOccurence.keySet()) {
+				
+				CombinedOccurence combined = combine(wordOccurence
+						.get(word));
+				combinedHM.put(word, combined);
+				// StringBuilder sb = new StringBuilder();
+				// for (CombinedOccurence occur: combined) {
+				// sb.append(occur);
+				// }
+				// valueInfo.set(sb.toString());
+				// context.write(keyInfo, valueInfo);
+			}
+			double max = 0;
+			for (String word: combinedHM.keySet()) {
+				max = Math.max(max, combinedHM.get(word).tf);
+			}
+			for (String word: combinedHM.keySet()) {
+				CombinedOccurence temp = combinedHM.get(word);
+				temp.tf = 0.5 + 0.5 * temp.tf / max;
 				keyInfo.set("Word\t" + word);
-				String output = "";
-				int size = wordOccurence.get(word).size();
-				for (int i = 0; i < size; i++) {
-					for (Occurence ocr : wordOccurence.get(word)) {
-						output += "[" + ocr.toString() + "]\t";
-					}
-				}
-
-				valueInfo.set(output);
+				valueInfo.set(temp.toString());
 				context.write(keyInfo, valueInfo);
 			}
-
 		}
+	}
+
+	private static CombinedOccurence combine(
+			ArrayList<Occurence> occurences) {
+		CombinedOccurence res = new CombinedOccurence(occurences.get(0).url);
+		for (Occurence occurence : occurences) {
+			res.tf += occurence.importance;
+			res.addPosition(occurence.position);	
+		}
+		return res;
 	}
 
 	private static boolean isAllCapital(String s) {
@@ -213,7 +231,7 @@ public class InvertedIndex {
 
 	private static void helper(String url,
 			HashMap<String, ArrayList<Occurence>> wordOccurence, String word,
-			int type,int position) {
+			int type, int position) {
 
 		int isCapital = 0;
 
@@ -226,8 +244,7 @@ public class InvertedIndex {
 
 		if (!wordOccurence.containsKey(word)) {
 			ArrayList<Occurence> tempList = new ArrayList<Occurence>();
-			tempList.add(new Occurence(url, isCapital, type,
-					position));
+			tempList.add(new Occurence(url, isCapital, type, position));
 			wordOccurence.put(word, tempList);
 		} else {
 			wordOccurence.get(word).add(
