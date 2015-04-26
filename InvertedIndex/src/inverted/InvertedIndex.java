@@ -11,7 +11,6 @@ import java.util.StringTokenizer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -31,11 +30,10 @@ public class InvertedIndex {
 	static int numberOfNodes = 3;
 	static BigInteger total = new BigInteger(
 			"ffffffffffffffffffffffffffffffffffffffff", 16);
-	static BigInteger unit = total.divide(BigInteger.valueOf(numberOfNodes));;
+	static BigInteger unit = total.divide(BigInteger.valueOf(numberOfNodes));
 
 	public static class Map extends
 			Mapper<NullWritable, BytesWritable, Text, Text> {
-
 		public void map(NullWritable key, BytesWritable value, Context context)
 				throws IOException, InterruptedException {
 
@@ -58,7 +56,7 @@ public class InvertedIndex {
 
 			Elements metaData = doc.select("meta[name]");
 			if (metaData != null) {
-				System.out.println("metaData is " + metaData);
+				//System.out.println("metaData is " + metaData);
 
 				String metaContent = "";
 				for (Element data : metaData) {
@@ -120,19 +118,42 @@ public class InvertedIndex {
 				}
 			}
 
+			HashMap<String, CombinedOccurence> combinedHM = new HashMap<String, CombinedOccurence>();
 			for (String word : wordOccurence.keySet()) {
+				
+				CombinedOccurence combined = combine(wordOccurence
+						.get(word));
+				combinedHM.put(word, combined);
+				// StringBuilder sb = new StringBuilder();
+				// for (CombinedOccurence occur: combined) {
+				// sb.append(occur);
+				// }
+				// valueInfo.set(sb.toString());
+				// context.write(keyInfo, valueInfo);
+			}
+			double max = 0;
+			for (String word: combinedHM.keySet()) {
+				max = Math.max(max, combinedHM.get(word).tf);
+			}
+			for (String word: combinedHM.keySet()) {
+				CombinedOccurence temp = combinedHM.get(word);
+				temp.tf = 0.5 + 0.5 * temp.tf / max;
 				keyInfo.set("Word\t" + word);
-				String output = "";
+				valueInfo.set(temp.toString());
 
-				for (Occurence ocr : wordOccurence.get(word)) {
-					output += "[" + ocr.toString() + "]\t";
-				}
-
-				valueInfo.set(output);
 				context.write(keyInfo, valueInfo);
 			}
-
 		}
+	}
+
+	private static CombinedOccurence combine(
+			ArrayList<Occurence> occurences) {
+		CombinedOccurence res = new CombinedOccurence(occurences.get(0).url);
+		for (Occurence occurence : occurences) {
+			res.tf += occurence.importance;
+			res.addPosition(occurence.position);	
+		}
+		return res;
 	}
 
 	private static boolean isAllCapital(String s) {

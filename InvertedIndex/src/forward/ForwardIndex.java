@@ -178,6 +178,65 @@ public class ForwardIndex {
 		}
 
 	}
+	
+	public static class Reduce extends Reducer<Text, Text, Text, Text> {
+		private MultipleOutputs<Text, Text> mos;
+		private Text keyInfo = new Text();
+		private Text valueInfo = new Text();
+
+		@Override
+		protected void setup(Context context) throws IOException,
+				InterruptedException {
+			mos = new MultipleOutputs<Text, Text>(context);
+			super.setup(context);
+		}
+
+		@Override
+		protected void cleanup(Context context) throws IOException,
+				InterruptedException {
+			mos.close();
+			super.cleanup(context);
+		}
+
+		public void reduce(Text key, Iterable<Text> values, Context context)
+				throws IOException, InterruptedException {
+			if (key.toString().startsWith("Url")) {
+			String url = key.toString().split("\t", 2)[1];
+			HashMap<String, CombinedOccurence> hm = new HashMap<String, CombinedOccurence>();
+			for (Text value: values) {
+				String[] entry = value.toString().split(",");
+				String word = entry[0];
+				double importance = Double.parseDouble(entry[1]);
+				int position = Integer.parseInt(entry[2]);
+				if (hm.containsKey(word)) {
+					CombinedOccurence temp = hm.get(word);
+					temp.tf += importance;
+					temp.addPosition(position);
+				} else {
+					CombinedOccurence temp = new CombinedOccurence(url);
+					temp.tf += importance;
+					temp.addPosition(position);
+					hm.put(word, temp);
+				}	 
+			}
+			
+			double max = 0;
+			for (String word: hm.keySet()) {
+				max = Math.max(max, hm.get(word).tf);
+			}
+			for (String word: hm.keySet()) {
+				CombinedOccurence temp = hm.get(word);
+				temp.tf = 0.5 + 0.5 * temp.tf / max;
+				keyInfo.set(word);
+				valueInfo.set(temp.toString());
+
+				context.write(keyInfo, valueInfo);
+			}
+			}
+		}
+	}
+	
+	
 
 	public static void main(String[] args) throws Exception {
 		Configuration conf = new Configuration();
