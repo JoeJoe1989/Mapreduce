@@ -118,9 +118,9 @@ public class InvertedIndex {
 				String output = "";
 				int size = wordOccurence.get(word).size();
 				for (int i = 0; i < size; i++) {
-					output += wordOccurence.get(word).toString();
-					if (i != size - 1)
-						output += "||";
+					for (Occurence ocr : wordOccurence.get(word)) {
+						output += "[" + ocr.toString() + "]\t";
+					}
 				}
 
 				valueInfo.set(output);
