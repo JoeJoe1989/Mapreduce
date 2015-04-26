@@ -1,6 +1,8 @@
 package inverted;
 
 import java.io.IOException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.StringTokenizer;
@@ -25,6 +27,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class InvertedIndex {
+	static int numberOfNodes = 3;
+	static BigInteger total = new BigInteger(
+			"ffffffffffffffffffffffffffffffffffffffff", 16);
+	static BigInteger unit = total.divide(BigInteger.valueOf(numberOfNodes));;
 
 	public static class Map extends
 			Mapper<NullWritable, BytesWritable, Text, Text> {
@@ -58,7 +64,7 @@ public class InvertedIndex {
 				StringTokenizer metaTokens = new StringTokenizer(metaContent);
 				while (metaTokens.hasMoreTokens()) {
 					String word = metaTokens.nextToken();
-					helper(url, wordOccurence, word, 2, 3, position);
+					helper(url, wordOccurence, word, 2, 5, position);
 					position++;
 				}
 			}
@@ -167,12 +173,37 @@ public class InvertedIndex {
 				result += val.toString() + "\t";
 			}
 			valueInfo.set(result);
-			context.write(key, valueInfo);
+			// context.write(key, valueInfo);
 
-			if (key.getLength() < 3)
-				mos.write("test1", key, valueInfo);
-			else
-				mos.write("test2", key, valueInfo);
+			String keyWord = key.toString();
+			if (keyWord.startsWith("Word")) {
+				String realKey = keyWord.split("\t", 2)[1];
+				String s = "";
+				try {
+					MessageDigest crypt = MessageDigest.getInstance("SHA-1");
+					crypt.reset();
+					crypt.update(realKey.getBytes("UTF-8"));
+					s = byteArrayToHexString(crypt.digest());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+				BigInteger keyValue = new BigInteger(s, 16);
+				int n = (keyValue.divide(unit)).intValue();
+				mos.write("output" + n, realKey, valueInfo);
+			} else {
+				String realKey = keyWord.split("\t", 2)[1];
+				mos.write("links", realKey, valueInfo);
+			}
+		}
+
+		private static String byteArrayToHexString(byte[] b) {
+			String result = "";
+			for (int i = 0; i < b.length; i++) {
+				result += Integer.toString((b[i] & 0xff) + 0x100, 16)
+						.substring(1);
+			}
+			return result;
 		}
 	}
 
@@ -220,9 +251,11 @@ public class InvertedIndex {
 		FileInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
-		MultipleOutputs.addNamedOutput(job, "test1", TextOutputFormat.class,
-				Text.class, Text.class);
-		MultipleOutputs.addNamedOutput(job, "test2", TextOutputFormat.class,
+		for (int i = 0; i < numberOfNodes; i++) {
+			MultipleOutputs.addNamedOutput(job, "output" + i,
+					TextOutputFormat.class, Text.class, Text.class);
+		}
+		MultipleOutputs.addNamedOutput(job, "links", TextOutputFormat.class,
 				Text.class, Text.class);
 
 		boolean ret = job.waitForCompletion(true);

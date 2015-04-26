@@ -8,7 +8,7 @@ public class Occurence {
 	public int capital;
 	// 0 for anchor, 1 for title, 2 for meta, 3 for body
 	public int type;
-	// 10, 5, 3, 1
+	// 10, 10, 5, 1
 	public int importance;
 	public int position;
 

@@ -43,12 +43,14 @@ public class WholeFileRecordReader extends
 		byte[] result = new byte[fileLength];
 		
 		FileSystem fs = null;
-		try {
-			fs = FileSystem.get(new URI("s3://cis555/smallest"), conf);
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		fs = FileSystem.get(conf);
+
+//		try {
+//			fs = FileSystem.get(new URI("s3://cis555/smallest"), conf);
+//		} catch (URISyntaxException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		FSDataInputStream in = null;
 		try {
 			in = fs.open(split.getPath());
