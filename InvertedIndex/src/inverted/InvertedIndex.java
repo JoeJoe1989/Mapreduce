@@ -128,7 +128,6 @@ public class InvertedIndex {
 					output += "[" + ocr.toString() + "]\t";
 				}
 
-
 				valueInfo.set(output);
 				context.write(keyInfo, valueInfo);
 			}
@@ -215,23 +214,22 @@ public class InvertedIndex {
 
 	private static void helper(String url,
 			HashMap<String, ArrayList<Occurence>> wordOccurence, String word,
-			int type,int position) {
+			int type, int position) {
 
 		int isCapital = 0;
-
+		word = word.replaceAll("[^A-Za-z0-9]*$|^[^A-Za-z0-9]*", "");
 		if (isAllLetter(word)) {
 			if (isAllCapital(word)) {
 				isCapital = 1;
 			}
-			word = Stemmer.getString(word.toLowerCase().toString());
-		} else {
-			word = word.replaceAll("[^A-Za-z0-9]*$|^[^A-Za-z0-9]*", "");
+			word = Stemmer.getString(word);
 		}
+
+		word = word.toLowerCase().toString();
 
 		if (!wordOccurence.containsKey(word)) {
 			ArrayList<Occurence> tempList = new ArrayList<Occurence>();
-			tempList.add(new Occurence(url, isCapital, type,
-					position));
+			tempList.add(new Occurence(url, isCapital, type, position));
 			wordOccurence.put(word, tempList);
 		} else {
 			wordOccurence.get(word).add(
