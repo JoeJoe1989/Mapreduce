@@ -53,8 +53,6 @@ public class ForwardIndex {
 
 			Elements metaData = doc.select("meta[name]");
 			if (metaData != null) {
-				System.out.println("metaData is " + metaData);
-
 				String metaContent = "";
 				for (Element data : metaData) {
 					if ("keywords".equals(data.attr("name"))
@@ -62,34 +60,41 @@ public class ForwardIndex {
 						metaContent += data.attr("content") + " ";
 				}
 
-				StringTokenizer metaTokens = new StringTokenizer(metaContent);
-				while (metaTokens.hasMoreTokens()) {
-					String word = metaTokens.nextToken();
-					helper(url, wordOccurence, word, 2, position);
-					position++;
+				if (!"".equals(metaContent)) {
+					String[] metaTokens = metaContent.split("[^a-zA-Z0-9]+");
+					for (String word : metaTokens) {
+						helper(url, wordOccurence, word, 2, position);
+						position++;
+					}
 				}
+
 			}
 
 			// for title
 			String title = doc.title();
-			StringTokenizer titleTokens = new StringTokenizer(title);
-			while (titleTokens.hasMoreTokens()) {
-				String word = titleTokens.nextToken();
-				helper(url, wordOccurence, word, 1, position);
-				position++;
+
+			if (!"".equals(title)) {
+				String[] titleTokens = title.split("[^a-zA-Z0-9]+");
+				for (String word : titleTokens) {
+					helper(url, wordOccurence, word, 1, position);
+					position++;
+				}
 			}
 
 			// for body
 			Element bodyData = doc.body();
 			if (bodyData != null) {
 				String body = bodyData.text();
-				StringTokenizer bodyTokens = new StringTokenizer(body);
 
-				while (bodyTokens.hasMoreTokens()) {
-					String word = bodyTokens.nextToken();
-					helper(url, wordOccurence, word, 3, position);
-					position++;
+				if (!"".equals(body)) {
+					String[] bodyTokens = body.split("[^a-zA-Z0-9]+");
+					for (String word : bodyTokens) {
+						helper(url, wordOccurence, word, 3, position);
+						position++;
+					}
+
 				}
+
 			}
 
 			// for anchor
@@ -99,28 +104,31 @@ public class ForwardIndex {
 
 				for (Element link : links) {
 					String anchor = link.text().trim();
+					if (!"".equals(anchor)) {
+						String outLink = link.attr("abs:href");
 
-					StringTokenizer anchorTokens = new StringTokenizer(anchor);
-					String outLink = link.attr("abs:href");
+						// for page rank
+						keyInfo.set("Link\t" + outLink);
+						valueInfo.set(numOutLinks + "," + url);
+						context.write(keyInfo, valueInfo);
 
-					// for page rank
-					keyInfo.set("Link\t" + outLink);
-					valueInfo.set(numOutLinks + "," + url);
-					context.write(keyInfo, valueInfo);
+						String[] anchorTokens = anchor.split("[^a-zA-Z0-9]+");
+						for (String word : anchorTokens) {
+							helper(url, wordOccurence, word, 0, 0);
+							position++;
+						}
 
-					while (anchorTokens.hasMoreTokens()) {
-						String word = anchorTokens.nextToken();
-						helper(outLink, wordOccurence, word, 0, 0);
 					}
+
 				}
 			}
 
 			for (String word : wordOccurence.keySet()) {
 				for (Occurence ocr : wordOccurence.get(word)) {
 					keyInfo.set("Url\t" + ocr.url);
-					String output = "";
-					output += "[" + word + "," + ocr.importance + ","
-							+ ocr.position + "]\t";
+					String output = word + "," + ocr.importance + ","
+							+ ocr.position;
+					valueInfo.set(output);
 					context.write(keyInfo, valueInfo);
 				}
 
@@ -144,8 +152,6 @@ public class ForwardIndex {
 		}
 		return true;
 	}
-
-
 
 	private static void helper(String url,
 			HashMap<String, ArrayList<Occurence>> wordOccurence, String word,
