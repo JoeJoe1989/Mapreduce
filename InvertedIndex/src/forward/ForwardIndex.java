@@ -114,7 +114,7 @@ public class ForwardIndex {
 
 						String[] anchorTokens = anchor.split("[^a-zA-Z0-9]+");
 						for (String word : anchorTokens) {
-							helper(url, wordOccurence, word, 0, 0);
+							helper(outLink, wordOccurence, word, 0, 0);
 							position++;
 						}
 
