@@ -11,5 +11,12 @@
 =======
 /Stemmer.class
 >>>>>>> branch 'master' of https://github.com/JoeJoe1989/Mapreduce.git
+<<<<<<< HEAD
 /WholeFileInputFormat.class
 /WholeFileRecordReader.class
+=======
+/InvertedIndex$Map.class
+/InvertedIndex$Reduce.class
+/InvertedIndex.class
+/inverted/
+>>>>>>> branch 'master' of https://github.com/JoeJoe1989/Mapreduce

@@ -1,3 +1,5 @@
+package inverted;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -42,11 +44,11 @@ public class WholeFileRecordReader extends
 		
 		FileSystem fs = null;
 		fs = FileSystem.get(conf);
+
 //		try {
-//			
 //			fs = FileSystem.get(new URI("s3://cis555/smallest"), conf);
 //		} catch (URISyntaxException e) {
-//			 TODO Auto-generated catch block
+//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
 		FSDataInputStream in = null;

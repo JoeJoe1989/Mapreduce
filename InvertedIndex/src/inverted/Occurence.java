@@ -1,3 +1,5 @@
+package inverted;
+
 public class Occurence {
 
 	public String url;
@@ -6,7 +8,7 @@ public class Occurence {
 	public int capital;
 	// 0 for anchor, 1 for title, 2 for meta, 3 for title
 	public int type;
-	// 10, 10, 3, 1
+	// 10, 5, 3, 1
 	public int importance;
 	public int position;
 
