@@ -1,8 +1,11 @@
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.NullWritable;
@@ -20,12 +23,13 @@ public class WholeFileRecordReader extends
 	private final BytesWritable currValue = new BytesWritable();
 	private boolean fileProcessed = false;
 
+
 	@Override
 	public void initialize(InputSplit split, TaskAttemptContext context)
 			throws IOException, InterruptedException {
 		this.split = (FileSplit) split;
 		this.conf = context.getConfiguration();
-	}
+ 	}
 
 	@Override
 	public boolean nextKeyValue() throws IOException, InterruptedException {
@@ -35,8 +39,16 @@ public class WholeFileRecordReader extends
 
 		int fileLength = (int) split.getLength();
 		byte[] result = new byte[fileLength];
-
-		FileSystem fs = FileSystem.get(conf);
+		
+		FileSystem fs = null;
+		fs = FileSystem.get(conf);
+//		try {
+//			
+//			fs = FileSystem.get(new URI("s3://cis555/smallest"), conf);
+//		} catch (URISyntaxException e) {
+//			 TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		FSDataInputStream in = null;
 		try {
 			in = fs.open(split.getPath());
