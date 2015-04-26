@@ -92,14 +92,14 @@ public class InvertedIndex {
 			}
 
 			// for anchor
-			Elements links = doc.select("a[href]");
+			Elements links = doc.select("a");
 			if (links != null) {
 				int numOutLinks = links.size();
 
 				for (Element link : links) {
 					String anchor = link.text().trim();
 					StringTokenizer anchorTokens = new StringTokenizer(anchor);
-					String outLink = link.attr("abs:href").toString();
+					String outLink = link.attr("href");
 
 					// for page rank
 					keyInfo.set("Link\t" + outLink);
