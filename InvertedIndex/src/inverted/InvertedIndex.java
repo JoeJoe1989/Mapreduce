@@ -2,6 +2,7 @@ package inverted;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URLDecoder;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,6 +46,8 @@ public class InvertedIndex {
 
 			Path filePath = ((FileSplit) context.getInputSplit()).getPath();
 			String url = filePath.getName();
+
+			url = URLDecoder.decode(url, "UTF-8");
 
 			byte[] fileContentByte = value.getBytes();
 
