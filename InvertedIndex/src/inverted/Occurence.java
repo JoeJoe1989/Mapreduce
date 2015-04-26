@@ -12,19 +12,27 @@ public class Occurence {
 	public int importance;
 	public int position;
 
-	public Occurence(String url, int capital, int type, int importance,
+	public Occurence(String url, int capital, int type,
 			int position) {
 		this.url = url;
 		this.capital = capital;
 		this.type = type;
-		this.importance = importance;
 		this.position = position;
+		switch(type) {
+		case 0: 
+		case 1: importance = 10;
+		break;
+		case 2: importance = 5;
+		break;
+		case 3: importance = 1;
+		break;
+		}
+		if (capital == 1) importance += 2;
 	}
 
 	@Override
 	public String toString() {
 		return url + "\t" + type + "\t" + importance + "\t" + position;
-
 	}
 
 }

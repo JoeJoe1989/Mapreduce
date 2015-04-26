@@ -64,7 +64,7 @@ public class InvertedIndex {
 				StringTokenizer metaTokens = new StringTokenizer(metaContent);
 				while (metaTokens.hasMoreTokens()) {
 					String word = metaTokens.nextToken();
-					helper(url, wordOccurence, word, 2, 5, position);
+					helper(url, wordOccurence, word, 2, position);
 					position++;
 				}
 			}
@@ -74,7 +74,7 @@ public class InvertedIndex {
 			StringTokenizer titleTokens = new StringTokenizer(title);
 			while (titleTokens.hasMoreTokens()) {
 				String word = titleTokens.nextToken();
-				helper(url, wordOccurence, word, 1, 10, position);
+				helper(url, wordOccurence, word, 1, position);
 				position++;
 			}
 
@@ -86,7 +86,7 @@ public class InvertedIndex {
 
 				while (bodyTokens.hasMoreTokens()) {
 					String word = bodyTokens.nextToken();
-					helper(url, wordOccurence, word, 3, 1, position);
+					helper(url, wordOccurence, word, 3, position);
 					position++;
 				}
 			}
@@ -108,7 +108,7 @@ public class InvertedIndex {
 
 					while (anchorTokens.hasMoreTokens()) {
 						String word = anchorTokens.nextToken();
-						helper(outLink, wordOccurence, word, 0, 10, 0);
+						helper(outLink, wordOccurence, word, 0, 0);
 					}
 				}
 			}
@@ -209,7 +209,7 @@ public class InvertedIndex {
 
 	private static void helper(String url,
 			HashMap<String, ArrayList<Occurence>> wordOccurence, String word,
-			int type, int importance, int position) {
+			int type,int position) {
 
 		int isCapital = 0;
 
@@ -222,12 +222,12 @@ public class InvertedIndex {
 
 		if (!wordOccurence.containsKey(word)) {
 			ArrayList<Occurence> tempList = new ArrayList<Occurence>();
-			tempList.add(new Occurence(url, isCapital, type, importance,
+			tempList.add(new Occurence(url, isCapital, type,
 					position));
 			wordOccurence.put(word, tempList);
 		} else {
 			wordOccurence.get(word).add(
-					new Occurence(url, isCapital, type, importance, position));
+					new Occurence(url, isCapital, type, position));
 		}
 
 	}
