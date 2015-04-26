@@ -54,12 +54,15 @@ public class InvertedIndex {
 
 			int position = 0;
 
-			// for meta data
-			Elements metaData = doc.select("meta[name=description|keywords]");
+			Elements metaData = doc.select("meta[name]");
 			if (metaData != null) {
+				//System.out.println("metaData is " + metaData);
+
 				String metaContent = "";
 				for (Element data : metaData) {
-					metaContent += data.attr("content") + " ";
+					if ("keywords".equals(data.attr("name"))
+							|| "description".equals(data.attr("name")))
+						metaContent += data.attr("content") + " ";
 				}
 
 				StringTokenizer metaTokens = new StringTokenizer(metaContent);
@@ -93,7 +96,7 @@ public class InvertedIndex {
 			}
 
 			// for anchor
-			Elements links = doc.select("a");
+			Elements links = doc.select("a[href]");
 			if (links != null) {
 				int numOutLinks = links.size();
 
@@ -240,6 +243,8 @@ public class InvertedIndex {
 				isCapital = 1;
 			}
 			word = Stemmer.getString(word.toLowerCase().toString());
+		} else {
+			word = word.replaceAll("[^A-Za-z0-9]*$|^[^A-Za-z0-9]*", "");
 		}
 
 		if (!wordOccurence.containsKey(word)) {
