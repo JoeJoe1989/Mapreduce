@@ -140,6 +140,7 @@ public class InvertedIndex {
 				temp.tf = 0.5 + 0.5 * temp.tf / max;
 				keyInfo.set("Word\t" + word);
 				valueInfo.set(temp.toString());
+
 				context.write(keyInfo, valueInfo);
 			}
 		}
@@ -237,15 +238,15 @@ public class InvertedIndex {
 			int type, int position) {
 
 		int isCapital = 0;
-
+		word = word.replaceAll("[^A-Za-z0-9]*$|^[^A-Za-z0-9]*", "");
 		if (isAllLetter(word)) {
 			if (isAllCapital(word)) {
 				isCapital = 1;
 			}
-			word = Stemmer.getString(word.toLowerCase().toString());
-		} else {
-			word = word.replaceAll("[^A-Za-z0-9]*$|^[^A-Za-z0-9]*", "");
+			word = Stemmer.getString(word);
 		}
+
+		word = word.toLowerCase().toString();
 
 		if (!wordOccurence.containsKey(word)) {
 			ArrayList<Occurence> tempList = new ArrayList<Occurence>();
