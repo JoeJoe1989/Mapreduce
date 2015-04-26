@@ -1,3 +1,5 @@
+package inverted;
+
 public class Occurence {
 
 	public String url;
