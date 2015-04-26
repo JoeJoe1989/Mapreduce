@@ -92,7 +92,7 @@ public class InvertedIndex {
 			}
 
 			// for anchor
-			Elements links = doc.select("a[href]");
+			Elements links = doc.select("a");
 			if (links != null) {
 				int numOutLinks = links.size();
 
