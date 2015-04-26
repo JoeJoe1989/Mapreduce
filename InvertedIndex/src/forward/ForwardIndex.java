@@ -1,9 +1,5 @@
 package forward;
 
-import inverted.CombinedOccurence;
-import inverted.InvertedIndex;
-import inverted.Occurence;
-
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URLDecoder;
@@ -15,6 +11,7 @@ import java.util.StringTokenizer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -31,26 +28,105 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class ForwardIndex {
-	static int numberOfNodes = 3;
-	static BigInteger total = new BigInteger(
-			"ffffffffffffffffffffffffffffffffffffffff", 16);
-	static BigInteger unit = total.divide(BigInteger.valueOf(numberOfNodes));;
-
 	public static class Map extends
 			Mapper<NullWritable, BytesWritable, Text, Text> {
+
 		public void map(NullWritable key, BytesWritable value, Context context)
 				throws IOException, InterruptedException {
-		}
-	}
 
-	private static CombinedOccurence combine(
-			ArrayList<Occurence> occurences) {
-		CombinedOccurence res = new CombinedOccurence(occurences.get(0).url);
-		for (Occurence occurence : occurences) {
-			res.tf += occurence.importance;
-			res.addPosition(occurence.position);	
+			HashMap<String, ArrayList<Occurence>> wordOccurence = new HashMap<String, ArrayList<Occurence>>();
+
+			Text keyInfo = new Text();
+			Text valueInfo = new Text();
+
+			Path filePath = ((FileSplit) context.getInputSplit()).getPath();
+			String url = filePath.getName();
+
+			url = URLDecoder.decode(url, "UTF-8");
+
+			byte[] fileContentByte = value.getBytes();
+
+			String html = new String(fileContentByte);
+			Document doc = Jsoup.parse(html, url);
+
+			int position = 0;
+
+			Elements metaData = doc.select("meta[name]");
+			if (metaData != null) {
+				System.out.println("metaData is " + metaData);
+
+				String metaContent = "";
+				for (Element data : metaData) {
+					if ("keywords".equals(data.attr("name"))
+							|| "description".equals(data.attr("name")))
+						metaContent += data.attr("content") + " ";
+				}
+
+				StringTokenizer metaTokens = new StringTokenizer(metaContent);
+				while (metaTokens.hasMoreTokens()) {
+					String word = metaTokens.nextToken();
+					helper(url, wordOccurence, word, 2, position);
+					position++;
+				}
+			}
+
+			// for title
+			String title = doc.title();
+			StringTokenizer titleTokens = new StringTokenizer(title);
+			while (titleTokens.hasMoreTokens()) {
+				String word = titleTokens.nextToken();
+				helper(url, wordOccurence, word, 1, position);
+				position++;
+			}
+
+			// for body
+			Element bodyData = doc.body();
+			if (bodyData != null) {
+				String body = bodyData.text();
+				StringTokenizer bodyTokens = new StringTokenizer(body);
+
+				while (bodyTokens.hasMoreTokens()) {
+					String word = bodyTokens.nextToken();
+					helper(url, wordOccurence, word, 3, position);
+					position++;
+				}
+			}
+
+			// for anchor
+			Elements links = doc.select("a[href]");
+			if (links != null) {
+				int numOutLinks = links.size();
+
+				for (Element link : links) {
+					String anchor = link.text().trim();
+
+					StringTokenizer anchorTokens = new StringTokenizer(anchor);
+					String outLink = link.attr("abs:href");
+
+					// for page rank
+					keyInfo.set("Link\t" + outLink);
+					valueInfo.set(numOutLinks + "," + url);
+					context.write(keyInfo, valueInfo);
+
+					while (anchorTokens.hasMoreTokens()) {
+						String word = anchorTokens.nextToken();
+						helper(outLink, wordOccurence, word, 0, 0);
+					}
+				}
+			}
+
+			for (String word : wordOccurence.keySet()) {
+				for (Occurence ocr : wordOccurence.get(word)) {
+					keyInfo.set("Url\t" + ocr.url);
+					String output = word + "," + ocr.importance + ","
+							+ ocr.position;
+					valueInfo.set(output);
+					context.write(keyInfo, valueInfo);
+				}
+
+			}
+
 		}
-		return res;
 	}
 
 	private static boolean isAllCapital(String s) {
@@ -69,6 +145,34 @@ public class ForwardIndex {
 		return true;
 	}
 
+
+
+	private static void helper(String url,
+			HashMap<String, ArrayList<Occurence>> wordOccurence, String word,
+			int type, int position) {
+
+		int isCapital = 0;
+		word = word.replaceAll("[^A-Za-z0-9]*$|^[^A-Za-z0-9]*", "");
+		if (isAllLetter(word)) {
+			if (isAllCapital(word)) {
+				isCapital = 1;
+			}
+			word = Stemmer.getString(word);
+		}
+
+		word = word.toLowerCase().toString();
+
+		if (!wordOccurence.containsKey(word)) {
+			ArrayList<Occurence> tempList = new ArrayList<Occurence>();
+			tempList.add(new Occurence(url, isCapital, type, position));
+			wordOccurence.put(word, tempList);
+		} else {
+			wordOccurence.get(word).add(
+					new Occurence(url, isCapital, type, position));
+		}
+
+	}
+	
 	public static class Reduce extends Reducer<Text, Text, Text, Text> {
 		private MultipleOutputs<Text, Text> mos;
 		private Text keyInfo = new Text();
@@ -90,7 +194,8 @@ public class ForwardIndex {
 
 		public void reduce(Text key, Iterable<Text> values, Context context)
 				throws IOException, InterruptedException {
-			String url = key.toString();
+			if (key.toString().startsWith("Url")) {
+			String url = key.toString().split("\t", 2)[1];
 			HashMap<String, CombinedOccurence> hm = new HashMap<String, CombinedOccurence>();
 			for (Text value: values) {
 				String[] entry = value.toString().split(",");
@@ -116,19 +221,23 @@ public class ForwardIndex {
 			for (String word: hm.keySet()) {
 				CombinedOccurence temp = hm.get(word);
 				temp.tf = 0.5 + 0.5 * temp.tf / max;
-				keyInfo.set("Word\t" + word);
+				keyInfo.set(word);
 				valueInfo.set(temp.toString());
 
 				context.write(keyInfo, valueInfo);
 			}
+			}
 		}
 	}
+	
+	
+
 	public static void main(String[] args) throws Exception {
 		Configuration conf = new Configuration();
 
-		Job job = new Job(conf, "InvertedIndex");
+		Job job = new Job(conf, "ForwardIndex");
 
-		job.setJarByClass(InvertedIndex.class);
+		job.setJarByClass(ForwardIndex.class);
 
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
@@ -142,10 +251,6 @@ public class ForwardIndex {
 		FileInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
-		for (int i = 0; i < numberOfNodes; i++) {
-			MultipleOutputs.addNamedOutput(job, "output" + i,
-					TextOutputFormat.class, Text.class, Text.class);
-		}
 		MultipleOutputs.addNamedOutput(job, "links", TextOutputFormat.class,
 				Text.class, Text.class);
 

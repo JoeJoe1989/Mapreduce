@@ -30,7 +30,7 @@ public class InvertedIndex {
 	static int numberOfNodes = 3;
 	static BigInteger total = new BigInteger(
 			"ffffffffffffffffffffffffffffffffffffffff", 16);
-	static BigInteger unit = total.divide(BigInteger.valueOf(numberOfNodes));;
+	static BigInteger unit = total.divide(BigInteger.valueOf(numberOfNodes));
 
 	public static class Map extends
 			Mapper<NullWritable, BytesWritable, Text, Text> {
