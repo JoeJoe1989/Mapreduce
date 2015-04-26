@@ -48,11 +48,11 @@ public class InvertedIndex {
 			int position = 0;
 
 			// for meta data
-			Elements metaData = doc.select("meta[name=description]");
+			Elements metaData = doc.select("meta[name=description|keywords]");
 			if (metaData != null) {
 				String metaContent = "";
 				for (Element data : metaData) {
-					metaContent = metaData.attr("content");
+					metaContent += data.attr("content") + " ";
 				}
 
 				StringTokenizer metaTokens = new StringTokenizer(metaContent);
