@@ -49,7 +49,7 @@ public class InvertedIndex {
 			byte[] fileContentByte = value.getBytes();
 
 			String html = new String(fileContentByte);
-			Document doc = Jsoup.parse(html);
+			Document doc = Jsoup.parse(html, url);
 
 			int position = 0;
 
@@ -98,6 +98,7 @@ public class InvertedIndex {
 
 				for (Element link : links) {
 					String anchor = link.text().trim();
+
 					StringTokenizer anchorTokens = new StringTokenizer(anchor);
 					String outLink = link.attr("abs:href");
 
