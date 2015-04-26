@@ -50,8 +50,12 @@ public class InvertedIndex {
 			// for meta data
 			Elements metaData = doc.select("meta[name=description]");
 			if (metaData != null) {
-				String meta = metaData.select("content").first().toString();
-				StringTokenizer metaTokens = new StringTokenizer(meta);
+				String metaContent = "";
+				for (Element data : metaData) {
+					metaContent = metaData.attr("content");
+				}
+
+				StringTokenizer metaTokens = new StringTokenizer(metaContent);
 				while (metaTokens.hasMoreTokens()) {
 					String word = metaTokens.nextToken();
 					helper(url, wordOccurence, word, 2, 3, position);
@@ -64,7 +68,7 @@ public class InvertedIndex {
 			StringTokenizer titleTokens = new StringTokenizer(title);
 			while (titleTokens.hasMoreTokens()) {
 				String word = titleTokens.nextToken();
-				helper(url, wordOccurence, word, 1, 5, position);
+				helper(url, wordOccurence, word, 1, 10, position);
 				position++;
 			}
 
