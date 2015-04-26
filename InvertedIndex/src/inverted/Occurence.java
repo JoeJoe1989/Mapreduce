@@ -6,7 +6,7 @@ public class Occurence {
 
 	// 0 for non-capital 1 for capital
 	public int capital;
-	// 0 for anchor, 1 for title, 2 for meta, 3 for title
+	// 0 for anchor, 1 for title, 2 for meta, 3 for body
 	public int type;
 	// 10, 5, 3, 1
 	public int importance;

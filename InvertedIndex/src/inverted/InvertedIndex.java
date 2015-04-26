@@ -189,7 +189,7 @@ public class InvertedIndex {
 			word = Stemmer.getString(word.toLowerCase().toString());
 		}
 
-		if (wordOccurence.containsKey(word)) {
+		if (!wordOccurence.containsKey(word)) {
 			ArrayList<Occurence> tempList = new ArrayList<Occurence>();
 			tempList.add(new Occurence(url, isCapital, type, importance,
 					position));
