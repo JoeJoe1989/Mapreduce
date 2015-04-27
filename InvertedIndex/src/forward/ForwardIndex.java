@@ -108,9 +108,9 @@ public class ForwardIndex {
 						if (!hostName.equals(outHostName)) {
 							numOutLinks++;
 							outLinks.add(outLink);
-//							keyInfo.set("Link\t" + outHostName);
-//							valueInfo.set(numOutLinks + "," + hostName);
-//							context.write(keyInfo, valueInfo);
+							// keyInfo.set("Link\t" + outHostName);
+							// valueInfo.set(numOutLinks + "," + hostName);
+							// context.write(keyInfo, valueInfo);
 						}
 					} catch (Exception e) {
 					}
@@ -126,8 +126,8 @@ public class ForwardIndex {
 					}
 
 				}
-				
-				for (String outLink: outLinks) {
+
+				for (String outLink : outLinks) {
 					keyInfo.set("Link\t" + outLink);
 					valueInfo.set(numOutLinks + "," + url);
 					context.write(keyInfo, valueInfo);
@@ -174,18 +174,23 @@ public class ForwardIndex {
 			if (isAllCapital(word)) {
 				isCapital = 1;
 			}
-			word = Stemmer.getString(word);
+			//word = Stemmer.getString(word);
 		}
 
 		word = word.toLowerCase().toString();
 
-		if (!wordOccurence.containsKey(word)) {
-			ArrayList<Occurence> tempList = new ArrayList<Occurence>();
-			tempList.add(new Occurence(url, isCapital, type, position));
-			wordOccurence.put(word, tempList);
-		} else {
-			wordOccurence.get(word).add(
-					new Occurence(url, isCapital, type, position));
+		if (!Utility.stopList.contains(word)) {
+			if (isAllLetter(word)) {
+				word = Stemmer.getString(word);
+			}
+			if (!wordOccurence.containsKey(word)) {
+				ArrayList<Occurence> tempList = new ArrayList<Occurence>();
+				tempList.add(new Occurence(url, isCapital, type, position));
+				wordOccurence.put(word, tempList);
+			} else {
+				wordOccurence.get(word).add(
+						new Occurence(url, isCapital, type, position));
+			}
 		}
 
 	}
@@ -223,14 +228,13 @@ public class ForwardIndex {
 						hm.put(str, 1);
 					}
 				}
-				
-				for (String str: hm.keySet()) {
+
+				for (String str : hm.keySet()) {
 					sb.append(str + "," + hm.get(str) + "||");
 				}
 				keyInfo.set(url);
 				valueInfo.set(sb.toString());
 				mos.write("links", keyInfo, valueInfo);
-
 			}
 
 			if (key.toString().startsWith("Url")) {
