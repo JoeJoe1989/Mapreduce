@@ -31,6 +31,7 @@ public class Utility {
 			"you'll", "you're", "you've", "your", "your", "yourself",
 			"yourselves" };
 
-	public static List<String> stopList = Arrays.asList(temp);
+	public static ArrayList<String> stopList = new ArrayList<String>(
+			Arrays.asList(temp));
 
 }
