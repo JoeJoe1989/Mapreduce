@@ -1,17 +1,14 @@
 package forward;
 
 import java.io.IOException;
-import java.math.BigInteger;
+import java.net.URL;
 import java.net.URLDecoder;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -43,6 +40,7 @@ public class ForwardIndex {
 			String url = filePath.getName();
 
 			url = URLDecoder.decode(url, "UTF-8");
+			String hostName = new URL(url).getHost();
 
 			byte[] fileContentByte = value.getBytes();
 
@@ -100,18 +98,25 @@ public class ForwardIndex {
 			// for anchor
 			Elements links = doc.select("a[href]");
 			if (links != null) {
-				int numOutLinks = links.size();
-
+				int numOutLinks = 0;
+				ArrayList<String> outLinks = new ArrayList<String>();
 				for (Element link : links) {
 					String anchor = link.text().trim();
+					String outLink = link.attr("abs:href");
+					try {
+						String outHostName = new URL(outLink).getHost();
+						if (!hostName.equals(outHostName)) {
+							numOutLinks++;
+							outLinks.add(outLink);
+//							keyInfo.set("Link\t" + outHostName);
+//							valueInfo.set(numOutLinks + "," + hostName);
+//							context.write(keyInfo, valueInfo);
+						}
+					} catch (Exception e) {
+					}
+
 					if (!"".equals(anchor)) {
-						String outLink = link.attr("abs:href");
-
 						// for page rank
-						keyInfo.set("Link\t" + outLink);
-						valueInfo.set(numOutLinks + "," + url);
-						context.write(keyInfo, valueInfo);
-
 						String[] anchorTokens = anchor.split("[^a-zA-Z0-9]+");
 						for (String word : anchorTokens) {
 							helper(outLink, wordOccurence, word, 0, 0);
@@ -120,6 +125,12 @@ public class ForwardIndex {
 
 					}
 
+				}
+				
+				for (String outLink: outLinks) {
+					keyInfo.set("Link\t" + outLink);
+					valueInfo.set(numOutLinks + "," + url);
+					context.write(keyInfo, valueInfo);
 				}
 			}
 
@@ -178,7 +189,7 @@ public class ForwardIndex {
 		}
 
 	}
-	
+
 	public static class Reduce extends Reducer<Text, Text, Text, Text> {
 		private MultipleOutputs<Text, Text> mos;
 		private Text keyInfo = new Text();
@@ -200,43 +211,62 @@ public class ForwardIndex {
 
 		public void reduce(Text key, Iterable<Text> values, Context context)
 				throws IOException, InterruptedException {
-			if (key.toString().startsWith("Url")) {
 			String url = key.toString().split("\t", 2)[1];
-			HashMap<String, CombinedOccurence> hm = new HashMap<String, CombinedOccurence>();
-			for (Text value: values) {
-				String[] entry = value.toString().split(",");
-				String word = entry[0];
-				double importance = Double.parseDouble(entry[1]);
-				int position = Integer.parseInt(entry[2]);
-				if (hm.containsKey(word)) {
-					CombinedOccurence temp = hm.get(word);
-					temp.tf += importance;
-					temp.addPosition(position);
-				} else {
-					CombinedOccurence temp = new CombinedOccurence(url);
-					temp.tf += importance;
-					temp.addPosition(position);
-					hm.put(word, temp);
-				}	 
-			}
-			
-			double max = 0;
-			for (String word: hm.keySet()) {
-				max = Math.max(max, hm.get(word).tf);
-			}
-			for (String word: hm.keySet()) {
-				CombinedOccurence temp = hm.get(word);
-				temp.tf = 0.5 + 0.5 * temp.tf / max;
-				keyInfo.set(word);
-				valueInfo.set(temp.toString());
+			if (key.toString().startsWith("Link")) {
+				StringBuilder sb = new StringBuilder();
+				HashMap<String, Integer> hm = new HashMap<String, Integer>();
+				for (Text value : values) {
+					String str = value.toString();
+					if (hm.containsKey(str)) {
+						hm.put(str, hm.get(str) + 1);
+					} else {
+						hm.put(str, 1);
+					}
+				}
+				
+				for (String str: hm.keySet()) {
+					sb.append(str + "," + hm.get(str) + "||");
+				}
+				keyInfo.set(url);
+				valueInfo.set(sb.toString());
+				mos.write("links", keyInfo, valueInfo);
 
-				context.write(keyInfo, valueInfo);
 			}
+
+			if (key.toString().startsWith("Url")) {
+				HashMap<String, CombinedOccurence> hm = new HashMap<String, CombinedOccurence>();
+				for (Text value : values) {
+					String[] entry = value.toString().split(",");
+					String word = entry[0];
+					double importance = Double.parseDouble(entry[1]);
+					int position = Integer.parseInt(entry[2]);
+					if (hm.containsKey(word)) {
+						CombinedOccurence temp = hm.get(word);
+						temp.tf += importance;
+						temp.addPosition(position);
+					} else {
+						CombinedOccurence temp = new CombinedOccurence(url);
+						temp.tf += importance;
+						temp.addPosition(position);
+						hm.put(word, temp);
+					}
+				}
+
+				double max = 0;
+				for (String word : hm.keySet()) {
+					max = Math.max(max, hm.get(word).tf);
+				}
+				for (String word : hm.keySet()) {
+					CombinedOccurence temp = hm.get(word);
+					temp.tf = 0.5 + 0.5 * temp.tf / max;
+					keyInfo.set(word);
+					valueInfo.set(temp.toString());
+
+					context.write(keyInfo, valueInfo);
+				}
 			}
 		}
 	}
-	
-	
 
 	public static void main(String[] args) throws Exception {
 		Configuration conf = new Configuration();

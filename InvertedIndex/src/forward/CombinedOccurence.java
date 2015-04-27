@@ -21,7 +21,7 @@ public class CombinedOccurence {
 	}
 	
 	public String toString() {
-		return url + " " + tf + " " + positions;
+		return url + " " + String.format("%.3f", tf) + " " + positions;
 	}
 
 }
