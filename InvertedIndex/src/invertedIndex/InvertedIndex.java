@@ -43,8 +43,8 @@ public class InvertedIndex {
 		public void map(LongWritable key, Text value, Context context)
 				throws IOException, InterruptedException {
 			String myValue = value.toString();
-			String word = myValue.split("\t", 2)[0];
-			String content = myValue.split("\t", 2)[1];
+			String word = myValue.split("\\s+", 2)[0];
+			String content = myValue.split("\\s+", 2)[1];
 			keyInfo.set(word);
 			valueInfo.set(content);
 			context.write(keyInfo, valueInfo);

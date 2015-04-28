@@ -102,27 +102,27 @@ public class ForwardIndex {
 				ArrayList<String> outLinks = new ArrayList<String>();
 				for (Element link : links) {
 					String anchor = link.text().trim();
-					String outLink = link.attr("abs:href");
-					try {
-						String outHostName = new URL(outLink).getHost();
-						if (!hostName.equals(outHostName)) {
-							numOutLinks++;
-							outLinks.add(outLink);
-							// keyInfo.set("Link\t" + outHostName);
-							// valueInfo.set(numOutLinks + "," + hostName);
-							// context.write(keyInfo, valueInfo);
-						}
-					} catch (Exception e) {
-					}
-
-					if (!"".equals(anchor)) {
-						// for page rank
-						String[] anchorTokens = anchor.split("[^a-zA-Z0-9]+");
-						for (String word : anchorTokens) {
-							helper(outLink, wordOccurence, word, 0, 0);
-							position++;
+					String outLink = link.attr("abs:href").trim();
+					if (!"".equals(outLink)) {
+						try {
+							String outHostName = new URL(outLink).getHost();
+							if (!hostName.equals(outHostName)) {
+								numOutLinks++;
+								outLinks.add(outLink);
+							}
+						} catch (Exception e) {
 						}
 
+						if (!"".equals(anchor)) {
+							// for page rank
+							String[] anchorTokens = anchor
+									.split("[^a-zA-Z0-9]+");
+							for (String word : anchorTokens) {
+								helper(outLink, wordOccurence, word, 0, 0);
+								position++;
+							}
+
+						}
 					}
 
 				}
@@ -174,7 +174,7 @@ public class ForwardIndex {
 			if (isAllCapital(word)) {
 				isCapital = 1;
 			}
-			//word = Stemmer.getString(word);
+			// word = Stemmer.getString(word);
 		}
 
 		word = word.toLowerCase().toString();
