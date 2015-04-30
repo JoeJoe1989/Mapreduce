@@ -30,30 +30,35 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class PageRank {
-	
+
 	public static class PageRankMap extends
 			Mapper<LongWritable, Text, Text, Text> {
 		private Text keyInfo = new Text();
 		private Text valueInfo = new Text();
+
 		public void map(LongWritable key, Text value, Context context)
 				throws IOException, InterruptedException {
 			String line = value.toString();
-			String url = line.split("\t", 3)[0];
-			String urlInfo = line.split("\t", 3)[1];
+			String url = line.split("\\s+", 3)[0];
+			String urlInfo = line.split("\\s+", 3)[1];
 			String numOfOutLinks = urlInfo.split(",")[0];
-			String myValue = line.split("\t", 3)[2];
+			String myValue = line.split("\\s+", 3)[2];
 
-			keyInfo.set(url);
-			valueInfo.set("||" + numOfOutLinks + "\t" + myValue);
-			context.write(keyInfo, valueInfo);
-			
-			String[] outLinks = myValue.split("\\|\\|");
-			for (String outLinkEntry: outLinks) {
-				String outLink = outLinkEntry.split(",")[0];
-				String times = outLinkEntry.split(",")[1];
-				keyInfo.set(outLink);
-				valueInfo.set(times + "," + urlInfo);		
+			if (!"0".equals(numOfOutLinks)) {
+
+				keyInfo.set(url);
+				valueInfo.set("||" + numOfOutLinks + "\t" + myValue);
 				context.write(keyInfo, valueInfo);
+
+				String[] outLinks = myValue.split("\\|\\|");
+				for (String outLinkEntry : outLinks) {
+					String outLink = outLinkEntry.split(",")[0];
+					String times = outLinkEntry.split(",")[1];
+					keyInfo.set(outLink);
+					valueInfo.set(times + "," + urlInfo);
+					context.write(keyInfo, valueInfo);
+				}
+
 			}
 		}
 	}
@@ -62,16 +67,16 @@ public class PageRank {
 		private Text keyInfo = new Text();
 		private Text valueInfo = new Text();
 		private final double decay = 0.85;
-		
+
 		public void reduce(Text key, Iterable<Text> values, Context context)
 				throws IOException, InterruptedException {
-//			for (Text value: values) {
-//				context.write(key, value);
-//			}
+			// for (Text value: values) {
+			// context.write(key, value);
+			// }
 			float pageRankSum = 0;
-			String outLinks = "";
-			String myNumOfOutLinks = "";
-			for (Text value: values) {
+			String outLinks = "0,1||";
+			String myNumOfOutLinks = "0";
+			for (Text value : values) {
 				String myValue = value.toString();
 				if (myValue.startsWith("||")) {
 					myNumOfOutLinks = myValue.substring(2).split("\t", 2)[0];
@@ -81,16 +86,15 @@ public class PageRank {
 					double appearTimes = Double.parseDouble(info[0]);
 					double numOfOutLinks = Double.parseDouble(info[1]);
 					double pageRank = Double.parseDouble(info[2]);
-					pageRankSum += 1 - decay + decay * appearTimes / numOfOutLinks * pageRank;
+					pageRankSum += 1 - decay + decay * appearTimes
+							/ numOfOutLinks * pageRank;
 				}
 			}
 			keyInfo.set(key + "\t" + myNumOfOutLinks + "," + pageRankSum);
-			valueInfo.set(outLinks);		
+			valueInfo.set(outLinks);
 			context.write(keyInfo, valueInfo);
 		}
 	}
-	
-	
 
 	public static void main(String[] args) throws Exception {
 		Configuration conf = new Configuration();
@@ -118,4 +122,3 @@ public class PageRank {
 
 	}
 }
-

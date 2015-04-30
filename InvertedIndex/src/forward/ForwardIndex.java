@@ -3,6 +3,7 @@ package forward;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -43,7 +44,7 @@ public class ForwardIndex {
 			if (url.endsWith("/")) {
 				url = url.substring(0, url.length() - 1);
 			}
-			
+
 			String hostName = new URL(url).getHost();
 
 			byte[] fileContentByte = value.getBytes();
@@ -119,12 +120,16 @@ public class ForwardIndex {
 					if (outLink.endsWith("/")) {
 						outLink = outLink.substring(0, outLink.length() - 1);
 					}
-					
+
+					boolean ifEncoded = false;
+
 					if (!"".equals(outLink)) {
 						try {
 							String outHostName = new URL(outLink).getHost();
 							if (!hostName.equals(outHostName)) {
 								numOutLinks++;
+								outLink = URLEncoder.encode(outLink, "UTF-8");
+								ifEncoded = true;
 								outLinks.add(outLink);
 							}
 						} catch (Exception e) {
@@ -134,6 +139,9 @@ public class ForwardIndex {
 							// for page rank
 							String[] anchorTokens = anchor
 									.split("[^a-zA-Z0-9]+");
+							if (!ifEncoded)
+								outLink = URLEncoder.encode(outLink, "UTF-8");
+
 							for (String word : anchorTokens) {
 								word = word.trim();
 								if (!"".equals(word)) {
@@ -148,8 +156,8 @@ public class ForwardIndex {
 				}
 
 				for (String outLink : outLinks) {
-					keyInfo.set("Link\t" + outLink + "\t" + numOutLinks);
-					valueInfo.set(url);
+					keyInfo.set("Link\t" + url + "\t" + numOutLinks);
+					valueInfo.set(outLink);
 					context.write(keyInfo, valueInfo);
 				}
 			}
