@@ -148,8 +148,8 @@ public class ForwardIndex {
 				}
 
 				for (String outLink : outLinks) {
-					keyInfo.set("Link\t" + outLink);
-					valueInfo.set(numOutLinks + "," + url);
+					keyInfo.set("Link\t" + outLink + "\t" + numOutLinks);
+					valueInfo.set(url);
 					context.write(keyInfo, valueInfo);
 				}
 			}
@@ -252,7 +252,7 @@ public class ForwardIndex {
 				for (String str : hm.keySet()) {
 					sb.append(str + "," + hm.get(str) + "||");
 				}
-				keyInfo.set(url);
+				keyInfo.set(url + ",1.0");
 				valueInfo.set(sb.toString());
 				mos.write("links", keyInfo, valueInfo);
 			}
