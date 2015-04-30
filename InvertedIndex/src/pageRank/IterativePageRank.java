@@ -14,7 +14,7 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import pageRank.PageRank.PageRankMap;
 import pageRank.PageRank.PageRankReduce;
 
-public class TestPage {
+public class IterativePageRank {
 	
 	public static String basePath;
 
@@ -51,10 +51,10 @@ public class TestPage {
 
 	public static void main(String[] args) throws Exception {
 		int iterations = Integer.parseInt(args[0]);
-		TestPage.basePath = args[1];
+		IterativePageRank.basePath = args[1];
 		
 		for (int i = 0; i < iterations; i++) {
-			iteratePageRank(i);
+			IterativePageRank.iteratePageRank(i);
 		}
 
 	}
