@@ -1,61 +1,62 @@
-//package pageRank;
-//
-//import java.io.IOException;
-//
-//import org.apache.hadoop.conf.Configuration;
-//import org.apache.hadoop.conf.Configured;
-//import org.apache.hadoop.mapreduce.Job;
-//import org.apache.hadoop.util.Tool;
-//import org.apache.hadoop.util.ToolRunner;
-//
-//public class TestPage extends Configured implements Tool {
-//	String basePath;
-//
-//	public TestPage(String basePath) {
-//		this.basePath = basePath;
-//	}
-//
-//	public static void main(String[] args) throws Exception {
-//		ToolRunner.run(new TestPage(""), args);
-//	}
-//
-//	@SuppressWarnings({ "static-access" })
-//	public int run(String[] args) throws Exception {
-//
-//		// Iterate PageRank.
-//
-//		double current = 0;
-//		double previous = 200;
-//		while (Math.abs(current - previous) > 100) {
-//			previous = current;
-//
-//			current = iteratePageRank();
-//
-//		}
-//
-//		return 0;
-//
-//	}
-//
-//	private void oneRound(int i) throws IOException {
-//		   Job job = Job.getInstance(getConf());  
-//	        job.setJobName("PageRank:Basic:iteration" + i);  
-//	        job.setJarByClass(TestPage.class);
-//	        String in = basePath + "/iter" + i;  
-//	        int temp = i + 1;
-//	        String out = basePath + "/iter" + temp;
-//	        
-//	        
-//		
-//		
-//	}
-//
-//	// Run each iteration.
-//	private void iteratePageRank(int i) throws Exception {
-//		oneRound(i);
-//		double deviation = computeDeviation();
-//		return deviation;
-//
-//	}
-//
-//}
+package pageRank;
+
+import java.io.IOException;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+
+import pageRank.PageRank.PageRankMap;
+import pageRank.PageRank.PageRankReduce;
+
+public class TestPage {
+	
+	public static String basePath;
+
+	public static void iteratePageRank(int i) throws Exception {
+		
+
+		Configuration conf = new Configuration();
+
+		Job job = new Job(conf, "PageRank" + i);
+
+		job.setJarByClass(PageRank.class);
+
+		job.setOutputKeyClass(Text.class);
+		job.setOutputValueClass(Text.class);
+
+		job.setInputFormatClass(TextInputFormat.class);
+		job.setOutputFormatClass(TextOutputFormat.class);
+
+		job.setMapperClass(PageRankMap.class);
+		job.setReducerClass(PageRankReduce.class);
+
+		FileInputFormat.addInputPath(job, new Path(basePath + i));
+		int temp = i + 1;
+		FileOutputFormat.setOutputPath(job, new Path(basePath + temp));
+
+		boolean ret = job.waitForCompletion(true);
+		if (!ret) {
+			throw new Exception("Job Failed");
+		}
+
+	
+
+	}
+
+	public static void main(String[] args) throws Exception {
+		int iterations = Integer.parseInt(args[0]);
+		TestPage.basePath = args[1];
+		
+		for (int i = 0; i < iterations; i++) {
+			iteratePageRank(i);
+		}
+
+	}
+
+}
