@@ -40,6 +40,10 @@ public class ForwardIndex {
 			String url = filePath.getName();
 
 			url = URLDecoder.decode(url, "UTF-8");
+			if (url.endsWith("/")) {
+				url = url.substring(0, url.length() - 1);
+			}
+			
 			String hostName = new URL(url).getHost();
 
 			byte[] fileContentByte = value.getBytes();
@@ -61,8 +65,11 @@ public class ForwardIndex {
 				if (!"".equals(metaContent)) {
 					String[] metaTokens = metaContent.split("[^a-zA-Z0-9]+");
 					for (String word : metaTokens) {
-						helper(url, wordOccurence, word, 2, position);
-						position++;
+						word = word.trim();
+						if (!"".equals(word)) {
+							helper(url, wordOccurence, word, 2, position);
+							position++;
+						}
 					}
 				}
 
@@ -74,8 +81,11 @@ public class ForwardIndex {
 			if (!"".equals(title)) {
 				String[] titleTokens = title.split("[^a-zA-Z0-9]+");
 				for (String word : titleTokens) {
-					helper(url, wordOccurence, word, 1, position);
-					position++;
+					word = word.trim();
+					if (!"".equals(word)) {
+						helper(url, wordOccurence, word, 1, position);
+						position++;
+					}
 				}
 			}
 
@@ -87,8 +97,11 @@ public class ForwardIndex {
 				if (!"".equals(body)) {
 					String[] bodyTokens = body.split("[^a-zA-Z0-9]+");
 					for (String word : bodyTokens) {
-						helper(url, wordOccurence, word, 3, position);
-						position++;
+						word = word.trim();
+						if (!"".equals(word)) {
+							helper(url, wordOccurence, word, 3, position);
+							position++;
+						}
 					}
 
 				}
@@ -103,6 +116,10 @@ public class ForwardIndex {
 				for (Element link : links) {
 					String anchor = link.text().trim();
 					String outLink = link.attr("abs:href").trim();
+					if (outLink.endsWith("/")) {
+						outLink = outLink.substring(0, outLink.length() - 1);
+					}
+					
 					if (!"".equals(outLink)) {
 						try {
 							String outHostName = new URL(outLink).getHost();
@@ -118,8 +135,11 @@ public class ForwardIndex {
 							String[] anchorTokens = anchor
 									.split("[^a-zA-Z0-9]+");
 							for (String word : anchorTokens) {
-								helper(outLink, wordOccurence, word, 0, 0);
-								position++;
+								word = word.trim();
+								if (!"".equals(word)) {
+									helper(outLink, wordOccurence, word, 0, 0);
+									position++;
+								}
 							}
 
 						}
@@ -128,8 +148,8 @@ public class ForwardIndex {
 				}
 
 				for (String outLink : outLinks) {
-					keyInfo.set("Link\t" + outLink);
-					valueInfo.set(numOutLinks + "," + url);
+					keyInfo.set("Link\t" + outLink + "\t" + numOutLinks);
+					valueInfo.set(url);
 					context.write(keyInfo, valueInfo);
 				}
 			}
@@ -232,7 +252,7 @@ public class ForwardIndex {
 				for (String str : hm.keySet()) {
 					sb.append(str + "," + hm.get(str) + "||");
 				}
-				keyInfo.set(url);
+				keyInfo.set(url + ",1.0");
 				valueInfo.set(sb.toString());
 				mos.write("links", keyInfo, valueInfo);
 			}
