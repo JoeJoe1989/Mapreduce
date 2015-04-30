@@ -40,12 +40,12 @@ public class ForwardIndex {
 			Path filePath = ((FileSplit) context.getInputSplit()).getPath();
 			String url = filePath.getName();
 
-			url = URLDecoder.decode(url, "UTF-8");
-			if (url.endsWith("/")) {
-				url = url.substring(0, url.length() - 1);
-			}
+//			url = URLDecoder.decode(url, "UTF-8");
+//			if (url.endsWith("/")) {
+//				url = url.substring(0, url.length() - 1);
+//			}
 
-			String hostName = new URL(url).getHost();
+			String hostName = new URL(URLDecoder.decode(url, "UTF-8")).getHost();
 
 			byte[] fileContentByte = value.getBytes();
 
