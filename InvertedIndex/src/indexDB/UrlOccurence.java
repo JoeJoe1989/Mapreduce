@@ -31,7 +31,7 @@ public class UrlOccurence {
 	public void add(int a) {
 		positions.add(a);
 	}
-	
+
 	public String toString() {
 		return url + " " + tf + " " + positions;
 	}
