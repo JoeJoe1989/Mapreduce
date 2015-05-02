@@ -21,7 +21,17 @@ public class CombinedOccurence {
 	}
 	
 	public String toString() {
-		return url + " " + String.format("%.3f", tf) + " " + positions;
+		String posList = "";
+		for (int i = 0; i < positions.size(); i++) {
+			posList += positions.get(i);
+			if (i != positions.size() - 1)
+				posList += ",";
+				
+		}
+		
+		
+		
+		return url + " " + String.format("%.3f", tf) + " " + posList;
 	}
 
 }
