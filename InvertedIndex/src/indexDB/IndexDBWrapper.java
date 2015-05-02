@@ -57,7 +57,7 @@ public class IndexDBWrapper {
 		IndexDBWrapper db = new IndexDBWrapper("/home/joseph/Desktop/wordIndex");
 
 		db.setup();
-		File file = new File("/home/joseph/Desktop/inverted");
+		File file = new File("/home/joseph/Desktop/test");
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		String line;
 		while ((line = br.readLine()) != null) {
@@ -74,6 +74,7 @@ public class IndexDBWrapper {
 				String[] nums = strs[2].split(",");
 				UrlOccurence occur = new UrlOccurence();
 				occur.setUrl(url);
+				System.out.println(occur.getUrl());
 				occur.setTF(tf);
 				for (String num : nums) {
 					int position = Integer.parseInt(num);
@@ -82,7 +83,7 @@ public class IndexDBWrapper {
 				wordOccur.add(occur);
 			}
 			db.putWordIndex(wordOccur);
-			System.out.println(wordOccur);
+//			System.out.println(wordOccur);
 		}
 		db.close();
 	}

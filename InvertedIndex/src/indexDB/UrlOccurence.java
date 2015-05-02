@@ -8,7 +8,6 @@ import com.sleepycat.persist.model.PrimaryKey;
 
 @Persistent
 public class UrlOccurence {
-	@PrimaryKey
 	private String url;
 	private double tf;
 	private ArrayList<Integer> positions = new ArrayList<Integer>();
