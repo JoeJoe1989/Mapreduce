@@ -8,15 +8,27 @@ public class IndexDBWrapperTest {
 
 	@Test
 	public void testIndexDBWrapper() {
-		IndexDBWrapper db = new IndexDBWrapper("/home/joseph/Desktop/wordIndex");
-		db.setup();
-		System.out.println(db.getWordIndex("z1").getUrlOccurences());
-		System.out.println(db.getWordIndex("z7p").getUrlOccurences());
-		System.out.println(db.getWordIndex("zimbabw").getUrlOccurences());
-		db.close();
+//		IndexDBWrapper db = new IndexDBWrapper("/home/joseph/Desktop/wordIndex");
+//		db.setup();
+//		System.out.println(db.getWordIndex("zurich"));
+//		System.out.println(db.getWordIndex("zv"));
+//		System.out.println(db.getWordIndex("yep"));
+//		System.out.println(db.getWordIndex("yontheroad"));
+//
+//		db.close();
+		
+		String a = "在";
+		System.out.println(isAllLetter(a));
 		
 
 	}
 
+	public static boolean isAllLetter(String s) {
+		for (int i = 0; i < s.length(); i++) {
+			if (!Character.isLetter(s.charAt(i)))
+				return false;
+		}
+		return true;
+	}
 
 }
