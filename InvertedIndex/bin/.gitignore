@@ -1,4 +1,9 @@
 /forward/
 /pageRank/
+<<<<<<< HEAD
 /indexDB/
 /invertedIndex/
+=======
+/inverted/
+/indexDB/
+>>>>>>> branch 'master' of https://github.com/JoeJoe1989/Mapreduce
