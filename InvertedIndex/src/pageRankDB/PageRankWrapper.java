@@ -52,10 +52,10 @@ public class PageRankWrapper {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		PageRankWrapper db = new PageRankWrapper("/home/honolulu413/wordIndex");
+		PageRankWrapper db = new PageRankWrapper("/home/joseph/Desktop/pageRank");
 		
 		db.setup();
-		File file = new File("/home/honolulu413/123");
+		File file = new File("/home/joseph/Desktop/page");
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		String line;
 		while ((line = br.readLine()) != null) {
@@ -66,6 +66,7 @@ public class PageRankWrapper {
 			page.setUrl(url);
 			page.setPageRank(pageRank);
 			db.putPage(page);
+			System.out.println(page);
 		}
 		db.close();
 	}
