@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class CombinedOccurence {
 	public String url;
-	public double tf;
+	public double tf;// term frequency
 	public ArrayList<Integer> positions;
 	
 	public CombinedOccurence(String url) {
